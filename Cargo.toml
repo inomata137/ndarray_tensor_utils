@@ -1,0 +1,22 @@
+[package]
+name = "ndarray_tensor_utils"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+matrixmultiply-threading = ["ndarray/matrixmultiply-threading"]
+rayon = ["ndarray/rayon"]
+
+blas-accelerate = ["ndarray/blas", "blas-src/accelerate"]
+blas-blis = ["ndarray/blas", "blas-src/blis"]
+blas-intel-mkl = ["ndarray/blas", "blas-src/intel-mkl"]
+blas-netlib = ["ndarray/blas", "blas-src/netlib"]
+blas-openblas-static = ["ndarray/blas", "blas-src/openblas", "dep:openblas-src", "openblas-src/static"]
+blas-openblas-system = ["ndarray/blas", "blas-src/openblas", "dep:openblas-src", "openblas-src/system"]
+blas-r = ["ndarray/blas", "blas-src/r"]
+
+[dependencies]
+ndarray = "^0.16.1"
+blas-src = "0.10"
+openblas-src = { version = "0.10", optional = true }
