@@ -22,32 +22,15 @@ where
     let rhs_axes_uniq = std::collections::BTreeSet::from_iter(rhs_axes);
     assert_eq!(rhs_axes_uniq.len(), N, "rhs_axes has duplicate entries");
 
-    let mut out_shape = Vec::with_capacity(lhs.ndim() + rhs.ndim() - 2 * N);
-
-    let lhs_permutation = {
-        let mut permutation = Vec::with_capacity(lhs.ndim());
-        (0..lhs.ndim())
-            .filter(|ax| !lhs_axes_uniq.contains(ax))
-            .for_each(|ax| {
-                out_shape.push(lhs.shape()[ax]);
-                permutation.push(ax);
-            });
-        permutation.extend(lhs_axes);
-        permutation
-    };
-    let rhs_permutation = {
-        let mut permutation = Vec::with_capacity(rhs.ndim());
-        permutation.extend(rhs_axes);
-        (0..rhs.ndim())
-            .filter(|ax| !rhs_axes_uniq.contains(&ax))
-            .for_each(|ax| {
-                out_shape.push(rhs.shape()[ax]);
-                permutation.push(ax);
-            });
-        permutation
-    };
-
-    let out_shape = out_shape;
+    let lhs_permutation = (0..lhs.ndim())
+        .filter(|ax| !lhs_axes_uniq.contains(ax))
+        .chain(lhs_axes.iter().copied())
+        .collect::<Vec<_>>();
+    let rhs_permutation = rhs_axes
+        .iter()
+        .copied()
+        .chain((0..rhs.ndim()).filter(|ax| !rhs_axes_uniq.contains(ax)))
+        .collect::<Vec<_>>();
 
     let lhs_permuted = lhs.view().permuted_axes(lhs_permutation);
     let (out_left_shape, dot_shape) = lhs_permuted.shape().split_at(lhs.ndim() - N);
@@ -58,6 +41,12 @@ where
     let (dot_shape, out_right_shape) = rhs_permuted.shape().split_at(N);
     assert_eq!(dot_size, dot_shape.iter().product::<usize>());
     let out_right_size = out_right_shape.iter().product::<usize>();
+
+    let out_shape = out_left_shape
+        .iter()
+        .chain(out_right_shape)
+        .copied()
+        .collect::<Vec<_>>();
 
     lhs_permuted
         .to_shape([out_left_size, dot_size])?
