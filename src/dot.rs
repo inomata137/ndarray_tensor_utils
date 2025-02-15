@@ -14,9 +14,6 @@ where
     D1: ndarray::Dimension,
     D2: ndarray::Dimension,
 {
-    let lhs = lhs.view().into_dyn();
-    let rhs = rhs.view().into_dyn();
-
     let lhs_axes_uniq = std::collections::BTreeSet::from_iter(lhs_axes);
     assert_eq!(lhs_axes_uniq.len(), N, "lhs_axes has duplicate entries");
     let rhs_axes_uniq = std::collections::BTreeSet::from_iter(rhs_axes);
@@ -32,12 +29,12 @@ where
         .chain((0..rhs.ndim()).filter(|ax| !rhs_axes_uniq.contains(ax)))
         .collect::<Vec<_>>();
 
-    let lhs_permuted = lhs.view().permuted_axes(lhs_permutation);
+    let lhs_permuted = lhs.view().into_dyn().permuted_axes(lhs_permutation);
     let (out_left_shape, dot_shape) = lhs_permuted.shape().split_at(lhs.ndim() - N);
     let out_left_size = out_left_shape.iter().product::<usize>();
     let dot_size = dot_shape.iter().product::<usize>();
 
-    let rhs_permuted = rhs.view().permuted_axes(rhs_permutation);
+    let rhs_permuted = rhs.view().into_dyn().permuted_axes(rhs_permutation);
     let (dot_shape, out_right_shape) = rhs_permuted.shape().split_at(N);
     assert_eq!(dot_size, dot_shape.iter().product::<usize>());
     let out_right_size = out_right_shape.iter().product::<usize>();
